@@ -18,3 +18,19 @@ type UpdateBudgetRequest struct {
 	ReservedAmount float64 `json:"reservedAmount" validate:"min=0"`
 	Remarks        string  `json:"remarks" validate:"max=512"`
 }
+
+// AbnormalCostItem describes an abnormal cost line blocking a budget close.
+type AbnormalCostItem struct {
+	ID             uint    `json:"id"`
+	VoucherNo      string  `json:"voucherNo"`
+	Name           string  `json:"name"`
+	Category       string  `json:"category"`
+	BudgetAmount   float64 `json:"budgetAmount"`
+	ActualAmount   float64 `json:"actualAmount"`
+	VarianceAmount float64 `json:"varianceAmount"`
+}
+
+// CloseBudgetBlockedResponse lists the abnormal costs blocking a budget close.
+type CloseBudgetBlockedResponse struct {
+	AbnormalItems []AbnormalCostItem `json:"abnormalItems"`
+}

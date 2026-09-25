@@ -177,7 +177,7 @@ func buildHandlers(cfg *config.Config, db *gorm.DB, rdb *redis.Client, logger *s
 
 	auditSvc := service.NewAuditLogService(auditRepo, logger)
 	authSvc := service.NewAuthService(cfg, userRepo, logger)
-	budgetSvc := service.NewProjectBudgetService(budgetRepo, auditSvc, logger)
+	budgetSvc := service.NewProjectBudgetService(budgetRepo, itemRepo, auditSvc, logger)
 	itemSvc := service.NewCostItemService(itemRepo, budgetRepo, auditSvc, logger)
 	orderSvc := service.NewChangeOrderService(orderRepo, auditSvc, logger)
 	analyticsSvc := service.NewAnalyticsService(itemRepo, budgetRepo, reportRepo, rdb, auditSvc, logger)

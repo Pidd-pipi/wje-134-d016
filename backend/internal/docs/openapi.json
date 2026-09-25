@@ -8,6 +8,7 @@
     "/api/v1/budgets/{id}/submit": { "post": {} },
     "/api/v1/budgets/{id}/approve": { "post": {} },
     "/api/v1/budgets/{id}/reject": { "post": {} },
+    "/api/v1/budgets/{id}/close": { "post": {} },
     "/api/v1/cost-items": { "get": {}, "post": {} },
     "/api/v1/cost-items/{id}": { "get": {}, "put": {} },
     "/api/v1/cost-items/{id}/mark-abnormal": { "post": {} },

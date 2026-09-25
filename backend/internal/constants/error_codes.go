@@ -23,9 +23,11 @@ var (
 )
 
 // AppError carries a business error code and a user-facing message.
+// Data optionally carries structured details (e.g. abnormal cost lines).
 type AppError struct {
 	Code    int
 	Message string
+	Data    any
 }
 
 // Error implements the error interface.
@@ -36,4 +38,9 @@ func (e *AppError) Error() string {
 // NewAppError builds an AppError.
 func NewAppError(code int, message string) *AppError {
 	return &AppError{Code: code, Message: message}
+}
+
+// NewAppErrorWithData builds an AppError carrying structured details.
+func NewAppErrorWithData(code int, message string, data any) *AppError {
+	return &AppError{Code: code, Message: message, Data: data}
 }

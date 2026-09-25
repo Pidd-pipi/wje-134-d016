@@ -134,3 +134,22 @@ func (h *ProjectBudgetHandler) Reject(c *gin.Context) {
 	}
 	util.OK(c, b)
 }
+
+// Close handles POST /budgets/:id/close (FinanceManager only).
+func (h *ProjectBudgetHandler) Close(c *gin.Context) {
+	id, ok := parseUintParam(c, "id")
+	if !ok {
+		return
+	}
+	u := middleware.GetCurrentUser(c)
+	if !constants.CanCloseBudget(u.Role) {
+		util.Fail(c, constants.ErrForbidden)
+		return
+	}
+	b, err := h.svc.Close(id, u.ID, u.Name)
+	if err != nil {
+		util.Fail(c, err)
+		return
+	}
+	util.OK(c, b)
+}

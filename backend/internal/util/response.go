@@ -30,7 +30,7 @@ func OK(c *gin.Context, data any) {
 func Fail(c *gin.Context, err error) {
 	var appErr *constants.AppError
 	if errors.As(err, &appErr) {
-		c.JSON(http.StatusOK, Response{Code: appErr.Code, Message: appErr.Message, Data: nil})
+		c.JSON(http.StatusOK, Response{Code: appErr.Code, Message: appErr.Message, Data: appErr.Data})
 		return
 	}
 

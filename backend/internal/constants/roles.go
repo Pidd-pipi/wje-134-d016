@@ -23,3 +23,9 @@ func CanRecordCost(role string) bool {
 func CanManageChangeOrder(role string) bool {
 	return role == RoleAdmin || role == RoleFinanceManager || role == RoleProjectManager
 }
+
+// CanCloseBudget reports whether a role may close (finalize) a budget.
+// Only the finance manager may close a budget at project settlement.
+func CanCloseBudget(role string) bool {
+	return role == RoleFinanceManager
+}

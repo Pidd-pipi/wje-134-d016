@@ -60,6 +60,16 @@ func (r *CostItemRepository) Update(c *model.CostItem) error {
 	return nil
 }
 
+// ListAbnormalByBudget returns abnormal cost items under a budget.
+func (r *CostItemRepository) ListAbnormalByBudget(budgetID uint) ([]model.CostItem, error) {
+	var items []model.CostItem
+	if err := r.db.Where("budget_id = ? AND is_abnormal = ?", budgetID, true).
+		Order("id ASC").Find(&items).Error; err != nil {
+		return nil, fmt.Errorf("list abnormal cost items: %w", err)
+	}
+	return items, nil
+}
+
 // SumActualByCategory aggregates actual amounts by category for a budget.
 func (r *CostItemRepository) SumActualByCategory(budgetID uint) (map[string]float64, error) {
 	type row struct {

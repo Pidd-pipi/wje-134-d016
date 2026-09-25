@@ -24,6 +24,7 @@ docker compose up -d --build
 ## API 功能列表
 
 - 项目预算：编制、编辑、提交审批、审批通过/驳回（仅 FinanceManager/Admin）
+- 预算封账：项目结算时由财务经理（FinanceManager）对已审批预算封账；存在异常成本时阻断并列出单号与超支明细，核回预算内后异常标记自动解除；封账后拒收新成本、明细冻结，重复封账有明确提示
 - 成本项：录入（自动计算差异金额）、核对、标记异常（仅 Accountant/FinanceManager/Admin）
 - 变更单：发起（自动计算变更后金额）、提交审批、审批/驳回/作废
 - 成本分析报表：按月/季/年度生成，Redis 缓存 10 分钟
@@ -89,6 +90,7 @@ go run ./cmd/server
 | GET/POST | /api/v1/budgets | 预算列表/编制 |
 | GET/PUT | /api/v1/budgets/:id | 详情/编辑草稿 |
 | POST | /api/v1/budgets/:id/submit · /approve · /reject | 预算审批流 |
+| POST | /api/v1/budgets/:id/close | 预算封账（仅 FinanceManager；异常成本未清则阻断并返回明细） |
 | GET/POST | /api/v1/cost-items | 成本列表/录入 |
 | GET/PUT | /api/v1/cost-items/:id | 详情/核对 |
 | POST | /api/v1/cost-items/:id/mark-abnormal | 标记异常 |
@@ -107,7 +109,7 @@ go run ./cmd/server
 
 | 枚举 | 文件 |
 | --- | --- |
-| BudgetStatus（Draft/Submitted/Approved/Rejected） | `backend/internal/constants/budget_status.go` |
+| BudgetStatus（Draft/Submitted/Approved/Rejected/Closed） | `backend/internal/constants/budget_status.go` |
 | CostCategory（Material/Labor/Equipment/Subcontract/Overhead/Other） | `backend/internal/constants/cost_category.go` |
 | ChangeType（ScopeChange/DesignChange/PriceAdjustment/UnforeseenCondition） | `backend/internal/constants/change_type.go` |
 | ChangeOrderStatus（Draft/Submitted/Approved/Rejected/Cancelled） | `backend/internal/constants/change_order_status.go` |

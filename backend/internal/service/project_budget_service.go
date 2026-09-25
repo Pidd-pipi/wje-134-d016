@@ -14,13 +14,14 @@ import (
 // ProjectBudgetService manages project budgets and their approvals.
 type ProjectBudgetService struct {
 	budgets *repository.ProjectBudgetRepository
+	items   *repository.CostItemRepository
 	audit   *AuditLogService
 	logger  *slog.Logger
 }
 
 // NewProjectBudgetService builds a ProjectBudgetService.
-func NewProjectBudgetService(budgets *repository.ProjectBudgetRepository, audit *AuditLogService, logger *slog.Logger) *ProjectBudgetService {
-	return &ProjectBudgetService{budgets: budgets, audit: audit, logger: logger}
+func NewProjectBudgetService(budgets *repository.ProjectBudgetRepository, items *repository.CostItemRepository, audit *AuditLogService, logger *slog.Logger) *ProjectBudgetService {
+	return &ProjectBudgetService{budgets: budgets, items: items, audit: audit, logger: logger}
 }
 
 // List returns budgets.
@@ -135,5 +136,49 @@ func (s *ProjectBudgetService) Reject(id uint, approverID uint, approverName str
 		return nil, fmt.Errorf("reject budget: %w", err)
 	}
 	s.audit.Record(approverID, approverName, "budget.reject", "budget", b.ID, "驳回预算")
+	return b, nil
+}
+
+// Close finalizes an approved budget at project settlement (FinanceManager only).
+// It refuses to close while abnormal costs remain under the budget.
+func (s *ProjectBudgetService) Close(id uint, userID uint, userName string) (*model.ProjectBudget, error) {
+	b, err := s.budgets.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if b.ApprovalStatus == constants.BudgetStatusClosed {
+		return nil, constants.NewAppError(constants.CodeConflict, "预算已封账，请勿重复封账")
+	}
+	if b.ApprovalStatus != constants.BudgetStatusApproved {
+		return nil, constants.NewAppError(constants.CodeConflict, "仅已审批通过的预算可封账")
+	}
+	abnormal, err := s.items.ListAbnormalByBudget(id)
+	if err != nil {
+		return nil, fmt.Errorf("close budget: %w", err)
+	}
+	if len(abnormal) > 0 {
+		blocked := dto.CloseBudgetBlockedResponse{AbnormalItems: make([]dto.AbnormalCostItem, 0, len(abnormal))}
+		for _, it := range abnormal {
+			blocked.AbnormalItems = append(blocked.AbnormalItems, dto.AbnormalCostItem{
+				ID:             it.ID,
+				VoucherNo:      it.VoucherNo,
+				Name:           it.Name,
+				Category:       it.Category,
+				BudgetAmount:   it.BudgetAmount,
+				ActualAmount:   it.ActualAmount,
+				VarianceAmount: it.VarianceAmount,
+			})
+		}
+		return nil, constants.NewAppErrorWithData(constants.CodeConflict,
+			fmt.Sprintf("存在 %d 笔异常成本，不允许封账", len(abnormal)), blocked)
+	}
+	now := time.Now()
+	b.ApprovalStatus = constants.BudgetStatusClosed
+	b.CloserID = userID
+	b.ClosedAt = &now
+	if err := s.budgets.Update(b); err != nil {
+		return nil, fmt.Errorf("close budget: %w", err)
+	}
+	s.audit.Record(userID, userName, "budget.close", "budget", b.ID, "预算封账")
 	return b, nil
 }

@@ -18,7 +18,7 @@ func newBudgetTestDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
-	if err := db.AutoMigrate(&model.User{}, &model.ProjectBudget{}, &model.AuditLog{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.ProjectBudget{}, &model.CostItem{}, &model.AuditLog{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 	return db
@@ -28,9 +28,10 @@ func TestBudgetApprovalFlow(t *testing.T) {
 	db := newBudgetTestDB(t)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	budgetRepo := repository.NewProjectBudgetRepository(db)
+	itemRepo := repository.NewCostItemRepository(db)
 	auditRepo := repository.NewAuditLogRepository(db)
 	auditSvc := NewAuditLogService(auditRepo, logger)
-	svc := NewProjectBudgetService(budgetRepo, auditSvc, logger)
+	svc := NewProjectBudgetService(budgetRepo, itemRepo, auditSvc, logger)
 
 	created, err := svc.Create(dtoCreateBudget(), 1, "测试员")
 	if err != nil {
