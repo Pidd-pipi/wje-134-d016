@@ -1,0 +1,27 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "建筑工程项目成本管控 API 服务", "version": "1.0.0" },
+  "paths": {
+    "/api/v1/auth/login": { "post": {} },
+    "/api/v1/budgets": { "get": {}, "post": {} },
+    "/api/v1/budgets/{id}": { "get": {}, "put": {} },
+    "/api/v1/budgets/{id}/submit": { "post": {} },
+    "/api/v1/budgets/{id}/approve": { "post": {} },
+    "/api/v1/budgets/{id}/reject": { "post": {} },
+    "/api/v1/cost-items": { "get": {}, "post": {} },
+    "/api/v1/cost-items/{id}": { "get": {}, "put": {} },
+    "/api/v1/cost-items/{id}/mark-abnormal": { "post": {} },
+    "/api/v1/change-orders": { "get": {}, "post": {} },
+    "/api/v1/change-orders/{id}": { "get": {}, "put": {} },
+    "/api/v1/change-orders/{id}/submit": { "post": {} },
+    "/api/v1/change-orders/{id}/approve": { "post": {} },
+    "/api/v1/change-orders/{id}/reject": { "post": {} },
+    "/api/v1/change-orders/{id}/cancel": { "post": {} },
+    "/api/v1/reports": { "get": {} },
+    "/api/v1/reports/{id}": { "get": {} },
+    "/api/v1/reports/generate": { "post": {} },
+    "/api/v1/audit-logs": { "get": {} },
+    "/healthz": { "get": {} }
+  },
+  "components": { "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer" } } }
+}

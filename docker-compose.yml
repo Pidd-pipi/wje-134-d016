@@ -1,0 +1,84 @@
+name: costguard
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-costguard}-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-costguard}
+      POSTGRES_USER: ${DB_USER:-costguard}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-costguard_pwd}
+      TZ: Asia/Shanghai
+    ports:
+      - "${DB_PORT:-33334}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER:-costguard} -d $${DB_NAME:-costguard}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-costguard}-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-36334}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ${COMPOSE_PROJECT_NAME:-costguard}-backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      SERVER_PORT: 8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-costguard}
+      DB_USER: ${DB_USER:-costguard}
+      DB_PASSWORD: ${DB_PASSWORD:-costguard_pwd}
+      DB_SSLMODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: "0"
+      JWT_SECRET: ${JWT_SECRET:-costguard-dev-secret-change-me}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:19203}
+      AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-10}
+      API_RATE_LIMIT: ${API_RATE_LIMIT:-60}
+      DB_MAX_OPEN_CONNS: ${DB_MAX_OPEN_CONNS:-25}
+      DB_MAX_IDLE_CONNS: ${DB_MAX_IDLE_CONNS:-5}
+      DB_CONN_MAX_LIFETIME_MIN: ${DB_CONN_MAX_LIFETIME_MIN:-5}
+      DB_CONNECT_RETRIES: ${DB_CONNECT_RETRIES:-10}
+      DB_CONNECT_RETRY_INTERVAL_SEC: ${DB_CONNECT_RETRY_INTERVAL_SEC:-3}
+      REDIS_CONNECT_RETRIES: ${REDIS_CONNECT_RETRIES:-10}
+      REDIS_CONNECT_RETRY_INTERVAL_SEC: ${REDIS_CONNECT_RETRY_INTERVAL_SEC:-3}
+    ports:
+      - "${BACKEND_PORT:-19203}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+volumes:
+  db_data:
+  redis_data:
