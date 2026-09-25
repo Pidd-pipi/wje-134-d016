@@ -14,6 +14,11 @@ func CanApproveBudget(role string) bool {
 	return role == RoleAdmin || role == RoleFinanceManager
 }
 
+// CanCloseBudget reports whether a role may close (seal) an approved budget.
+func CanCloseBudget(role string) bool {
+	return role == RoleAdmin || role == RoleFinanceManager
+}
+
 // CanRecordCost reports whether a role may record cost items.
 func CanRecordCost(role string) bool {
 	return role == RoleAdmin || role == RoleAccountant || role == RoleFinanceManager

@@ -15,7 +15,7 @@ func TestCostItemServiceCreateValidationAndVariance(t *testing.T) {
 	itemRepo := repository.NewCostItemRepository(db)
 	itemSvc := NewCostItemService(itemRepo, budgetRepo, audit, discardLogger())
 
-	budget, err := NewProjectBudgetService(budgetRepo, audit, discardLogger()).Create(dtoCreateBudget(), 1, "tester")
+	budget, err := NewProjectBudgetService(budgetRepo, itemRepo, audit, discardLogger()).Create(dtoCreateBudget(), 1, "tester")
 	if err != nil {
 		t.Fatalf("create budget: %v", err)
 	}

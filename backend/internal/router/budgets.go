@@ -12,5 +12,6 @@ func registerBudgets(api *gin.RouterGroup, h *Handlers) {
 		budgets.POST("/:id/submit", h.Budget.Submit)
 		budgets.POST("/:id/approve", h.Budget.Approve)
 		budgets.POST("/:id/reject", h.Budget.Reject)
+		budgets.POST("/:id/close", h.Budget.Close)
 	}
 }

@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS project_budgets (
   approval_status VARCHAR(16) NOT NULL DEFAULT 'Draft',
   approver_id BIGINT,
   approved_at TIMESTAMPTZ,
+  closer_id BIGINT,
+  closed_at TIMESTAMPTZ,
   remarks VARCHAR(512)
 );
 

@@ -14,6 +14,8 @@ type ProjectBudget struct {
 	ApprovalStatus string     `gorm:"size:16;not null;default:Draft" json:"approvalStatus"`
 	ApproverID     uint       `gorm:"index" json:"approverId"`
 	ApprovedAt     *time.Time `json:"approvedAt"`
+	CloserID       uint       `gorm:"index" json:"closerId"`
+	ClosedAt       *time.Time `json:"closedAt"`
 	Remarks        string     `gorm:"size:512" json:"remarks"`
 	CreatedAt      time.Time  `json:"createdAt"`
 	UpdatedAt      time.Time  `json:"-"`

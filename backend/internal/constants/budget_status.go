@@ -6,12 +6,13 @@ const (
 	BudgetStatusSubmitted = "Submitted"
 	BudgetStatusApproved  = "Approved"
 	BudgetStatusRejected  = "Rejected"
+	BudgetStatusClosed    = "Closed"
 )
 
 // ValidBudgetStatus reports whether a status is valid.
 func ValidBudgetStatus(s string) bool {
 	switch s {
-	case BudgetStatusDraft, BudgetStatusSubmitted, BudgetStatusApproved, BudgetStatusRejected:
+	case BudgetStatusDraft, BudgetStatusSubmitted, BudgetStatusApproved, BudgetStatusRejected, BudgetStatusClosed:
 		return true
 	}
 	return false

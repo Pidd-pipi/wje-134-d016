@@ -89,6 +89,7 @@ go run ./cmd/server
 | GET/POST | /api/v1/budgets | 预算列表/编制 |
 | GET/PUT | /api/v1/budgets/:id | 详情/编辑草稿 |
 | POST | /api/v1/budgets/:id/submit · /approve · /reject | 预算审批流 |
+| POST | /api/v1/budgets/:id/close | 预算封账（仅 FinanceManager/Admin；存在异常成本时返回单号与超支明细并拒绝） |
 | GET/POST | /api/v1/cost-items | 成本列表/录入 |
 | GET/PUT | /api/v1/cost-items/:id | 详情/核对 |
 | POST | /api/v1/cost-items/:id/mark-abnormal | 标记异常 |
@@ -107,7 +108,7 @@ go run ./cmd/server
 
 | 枚举 | 文件 |
 | --- | --- |
-| BudgetStatus（Draft/Submitted/Approved/Rejected） | `backend/internal/constants/budget_status.go` |
+| BudgetStatus（Draft/Submitted/Approved/Rejected/Closed） | `backend/internal/constants/budget_status.go` |
 | CostCategory（Material/Labor/Equipment/Subcontract/Overhead/Other） | `backend/internal/constants/cost_category.go` |
 | ChangeType（ScopeChange/DesignChange/PriceAdjustment/UnforeseenCondition） | `backend/internal/constants/change_type.go` |
 | ChangeOrderStatus（Draft/Submitted/Approved/Rejected/Cancelled） | `backend/internal/constants/change_order_status.go` |

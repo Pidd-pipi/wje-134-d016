@@ -28,9 +28,14 @@ func OK(c *gin.Context, data any) {
 
 // Fail maps an error to a unified JSON error response.
 func Fail(c *gin.Context, err error) {
+	FailWithData(c, err, nil)
+}
+
+// FailWithData maps an error to a unified JSON error response that carries data.
+func FailWithData(c *gin.Context, err error, data any) {
 	var appErr *constants.AppError
 	if errors.As(err, &appErr) {
-		c.JSON(http.StatusOK, Response{Code: appErr.Code, Message: appErr.Message, Data: nil})
+		c.JSON(http.StatusOK, Response{Code: appErr.Code, Message: appErr.Message, Data: data})
 		return
 	}
 
@@ -51,7 +56,7 @@ func Fail(c *gin.Context, err error) {
 		status, code, message = http.StatusBadRequest, constants.CodeBadRequest, err.Error()
 	}
 
-	c.JSON(status, Response{Code: code, Message: message, Data: nil})
+	c.JSON(status, Response{Code: code, Message: message, Data: data})
 }
 
 // BindAndValidate parses JSON and runs validator/v10 rules.

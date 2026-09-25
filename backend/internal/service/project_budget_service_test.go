@@ -28,9 +28,10 @@ func TestBudgetApprovalFlow(t *testing.T) {
 	db := newBudgetTestDB(t)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	budgetRepo := repository.NewProjectBudgetRepository(db)
+	itemRepo := repository.NewCostItemRepository(db)
 	auditRepo := repository.NewAuditLogRepository(db)
 	auditSvc := NewAuditLogService(auditRepo, logger)
-	svc := NewProjectBudgetService(budgetRepo, auditSvc, logger)
+	svc := NewProjectBudgetService(budgetRepo, itemRepo, auditSvc, logger)
 
 	created, err := svc.Create(dtoCreateBudget(), 1, "测试员")
 	if err != nil {

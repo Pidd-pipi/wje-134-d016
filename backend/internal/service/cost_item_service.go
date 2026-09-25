@@ -43,20 +43,20 @@ func (s *CostItemService) Create(req dto.CreateCostItemRequest, userID uint, use
 	if !constants.ValidCostCategory(req.Category) {
 		return nil, constants.NewAppError(constants.CodeBadRequest, "无效的成本类别")
 	}
-	if _, err := s.budgets.FindByID(req.BudgetID); err != nil {
+	if err := s.ensureBudgetOpen(req.BudgetID, "预算已封账，不再接收新成本"); err != nil {
 		return nil, err
 	}
 	item := &model.CostItem{
-		BudgetID:       req.BudgetID,
-		Category:       req.Category,
-		Name:           req.Name,
-		BudgetAmount:   req.BudgetAmount,
-		ActualAmount:   req.ActualAmount,
-		VarianceAmount: util.Variance(req.BudgetAmount, req.ActualAmount),
-		OccurrenceDate: dto.ParseDate(req.OccurrenceDate),
-		VoucherNo:      req.VoucherNo,
+		BudgetID:        req.BudgetID,
+		Category:        req.Category,
+		Name:            req.Name,
+		BudgetAmount:    req.BudgetAmount,
+		ActualAmount:    req.ActualAmount,
+		VarianceAmount:  util.Variance(req.BudgetAmount, req.ActualAmount),
+		OccurrenceDate:  dto.ParseDate(req.OccurrenceDate),
+		VoucherNo:       req.VoucherNo,
 		MaterialUsageID: req.MaterialUsageID,
-		TimesheetID:    req.TimesheetID,
+		TimesheetID:     req.TimesheetID,
 	}
 	if item.VarianceAmount > 0 {
 		item.IsAbnormal = true
@@ -77,6 +77,9 @@ func (s *CostItemService) Update(id uint, req dto.UpdateCostItemRequest, userID 
 	if err != nil {
 		return nil, err
 	}
+	if err := s.ensureBudgetOpen(item.BudgetID, "预算已封账，成本明细不可变更"); err != nil {
+		return nil, err
+	}
 	item.Category = req.Category
 	item.Name = req.Name
 	item.BudgetAmount = req.BudgetAmount
@@ -86,9 +89,8 @@ func (s *CostItemService) Update(id uint, req dto.UpdateCostItemRequest, userID 
 	if req.OccurrenceDate != "" {
 		item.OccurrenceDate = dto.ParseDate(req.OccurrenceDate)
 	}
-	if item.VarianceAmount > 0 {
-		item.IsAbnormal = true
-	}
+	// 核回预算内后异常标记自行解除，仍超支则保持异常。
+	item.IsAbnormal = item.VarianceAmount > 0
 	if err := s.items.Update(item); err != nil {
 		return nil, fmt.Errorf("update cost item: %w", err)
 	}
@@ -102,10 +104,25 @@ func (s *CostItemService) MarkAbnormal(id uint, userID uint, userName string) (*
 	if err != nil {
 		return nil, err
 	}
+	if err := s.ensureBudgetOpen(item.BudgetID, "预算已封账，成本明细不可变更"); err != nil {
+		return nil, err
+	}
 	item.IsAbnormal = true
 	if err := s.items.Update(item); err != nil {
 		return nil, fmt.Errorf("mark cost item abnormal: %w", err)
 	}
 	s.audit.Record(userID, userName, "cost_item.abnormal", "cost_item", item.ID, "标记异常成本")
 	return item, nil
+}
+
+// ensureBudgetOpen rejects cost changes once the budget is closed.
+func (s *CostItemService) ensureBudgetOpen(budgetID uint, message string) error {
+	budget, err := s.budgets.FindByID(budgetID)
+	if err != nil {
+		return err
+	}
+	if budget.ApprovalStatus == constants.BudgetStatusClosed {
+		return constants.NewAppError(constants.CodeConflict, message)
+	}
+	return nil
 }
